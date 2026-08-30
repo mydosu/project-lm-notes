@@ -1,0 +1,4 @@
+# Obsidian 个人配置/缓存不入库
+.obsidian/
+.trash/
+.obsidian-workspace.json
