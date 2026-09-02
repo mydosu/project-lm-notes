@@ -2,6 +2,43 @@
 
 > 2026-08-09 部署过程中的关键问题与解决（详见 [[Kiosk部署完成]]）
 
+## 2026.9.2 排障（天气源与网络）
+
+| 现象 | 根因 | 解决 |
+|---|---|---|
+| 屏幕天气一直"天气不可用" | wttr.in 的 IP（5.9.243.187）从板子网络路径 **TCP 443 超时**（国内网络屏蔽国外站点）；而 baidu 秒通 | 天气源可配置：默认**高德**（国内可达秒通），wttr 降为海外备选；双源自动降级（详见下方链路诊断） |
+| 天气请求长时间显示 `--` 不刷新 | 浏览器 fetch 无默认超时，wttr 连接超时可能 >10s | `fetchTimeout()`：AbortController 6~8s 中断，快速失败显示"天气不可用" |
+| 城市留空自动定位总是"上海" | 代码 `city = ... || '上海'` 兜底——直查上海成功即返回，**永远走不到 IP 定位分支** | 删除上海默认；城市留空走定位逻辑 |
+| 删除上海默认后自动定位仍失败 | 板子经 USB/ICS **只有 IPv6 公网出口**（IPv4 NAT 不通，`curl -4 baidu` 000）；高德 `/v3/ip` 对 IPv6 出口返回空 adcode（Windows 本机同 key 也空——IPv6 定位不支持） | 新增 **`/api/geoip` 后端代理**（admin app.py）：服务端请求 `myip.ipip.net`（实测支持 IPv6 定位，返回"中国 贵州 贵阳"）→ 解析省市 → 页面用城市名查高德天气——实测"贵阳市 · 22°C · 晴" |
+| 高德天气接口带城市名返回空 | （无此问题）高德 weatherInfo/geocode **填城市名/adcode 完全正常**（上海小雨 27°C、贵阳晴 22°C 实测）——只 IP 定位接口对 IPv6 空 | 定位走 geoip 代理后正常 |
+| `curl --interface` 绑 IP 测连通反而全超时 | `--interface` 绑 IP 会绕过路由表/走错路径（baidu 也 000） | 诊断连通性用默认路由 + 对照（baidu 通/wttr 不通），别用 --interface |
+
+**网络链路诊断结论**（2026.9.2 实测）：Windows 本机直连 wttr.in 200（走以太网2 家庭路由 IPv4）；板子默认路由首选 usb0(137.1 ICS)，但 ICS 仅 IPv6 出网可达国外域名解析、IPv4 NAT 不通；板子经 eth0(家庭局域网) 到 wttr 也超时 → **当前环境任何路径都无法免 key 访问国外天气源**，国内免 key 源（中国天气网/墨迹/百度）也全超时 → 唯一可行=高德 Web 服务（需 key）。
+
+**关键修复代码**：
+
+```python
+# admin/app.py —— /api/geoip 代理（兼容 IPv6 出口的 IP 定位）
+@app.route("/api/geoip")
+def api_geoip():
+    import re as _re, urllib.request
+    with urllib.request.urlopen("https://myip.ipip.net", timeout=8) as r:
+        text = r.read().decode("utf-8", errors="ignore")
+    m = _re.search(r"来自于：(.+)", text)
+    parts = [p for p in m.group(1).split() if p]   # ["中国","贵州","贵阳","电信"]
+    province, city = parts[1], parts[2]
+    if province in ("北京", "上海", "天津", "重庆"): city = province
+    elif city.endswith("市"): city = city[:-1]
+    return jsonify({"ok": True, "province": province, "city": city})
+```
+
+```javascript
+// demo/src/main.js —— 城市留空自动定位（页面 → 本地代理 → 高德天气）
+const geo = await (await fetch(`${API_BASE}/api/geoip`)).json()   // 板子无 CORS 限制
+city = geo.city || ''                                             // 如"贵阳"
+// 再用城市名查高德 weatherInfo（高德支持城市名直查）
+```
+
 ## 2026.8.30 排障（产品化收尾）
 
 | 现象 | 根因 | 解决 |

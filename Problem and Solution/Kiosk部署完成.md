@@ -333,6 +333,15 @@ python scripts\deploy.py --admin-only # 只部署后台
 **第三十轮：背景系统**——10 个渐变主题（极光/粉嫩/深色/薄荷/日落/海洋/星云/蜜桃/薰衣草/糖果）+ 自定义背景图（canvas 4:3 裁剪拖拽上传，图片优先于主题，切换主题自动移除）
 **第三十一轮：字体系统**——气泡半透明磨砂渐变（后台自选基色 blur 8px）、8 款艺术字（圆润系 5 + 科技/优雅/中文圆体）、每模块独立字体（fontStyles）、中文适配（站酷快乐体 449KB + 小薇体 945KB，各 3838 字子集）、切换闪现修复（block + 预加载 + 防竞态）
 
+## 功能迭代记录（2026.9.2 重构与天气修复）
+
+> 8.30 深夜～9.2 的仓库/文档层工作（历史合并、笔记开源、Agent 文档 v2）见 [[2026.8.30 Main]]。这里的坑与根因见 [[Live2D Kiosk 排障记录]]。
+
+**第三十二轮：后台代码重构 + 界面美化**——抽 api()/SAVE_FIELDS/SWITCH_FIELDS/draftField/pair() helper（消灭重复与嵌套三元）；按钮流光、卡片上浮、toast 弹性、侧栏顺滑过渡、粉色细滚动条
+**第三十三轮：天气源系统**——wttr.in 国内不可达 → 天气源可配置（后台下拉 + Key）；默认高德（amap），wttr 海外备选，双源自动降级；fetch 加 AbortController 超时快速失败
+**第三十四轮：联网模式重构（去 RNDIS 推送）**——RNDIS=底层驱动、ICS=网络共享；`infoSource` 语义从"信息源"改为**联网方式**（wifi/usb），删除 externalClock/externalWeather/timeinfo 电脑推送代码；后台文案改"USB 共享网络（电脑 ICS）"
+**第三十五轮：天气自动定位**——新增 `/api/geoip` 后端代理（服务端请求 myip.ipip.net 解析省市，兼容 IPv6 出口）；城市留空自动定位实测"贵阳市 · 22°C · 晴"
+
 ## 最终常用命令
 
 ```powershell

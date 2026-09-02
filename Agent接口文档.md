@@ -181,6 +181,7 @@ HTTP 返回 `{"ok": true}` 表示已接收并转发（板子壳也走这个入�
 | `/api/astrbot/sessions` | GET | 插件会话列表（后台会话切换用） |
 | `/api/astrbot/test` | GET | 测试 astrbot 插件连通（代理调 ping） |
 | `/api/shell/status` | GET | 板子壳运行状态（读 /tmp/board_shell.status） |
+| `/api/geoip` | GET | IP 定位代理（城市留空自动定位用；服务端 myip.ipip.net 解析，兼容 IPv6 出口） |
 | `/api/models` | GET | 模型列表 |
 | `/api/model` | POST `{"model":"Haru"}` | 切换模型（页面热切换） |
 | `/api/config` | GET/POST | 读/写配置（布局/开关/缩放/信息源等） |
