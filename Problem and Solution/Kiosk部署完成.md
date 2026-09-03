@@ -341,6 +341,7 @@ python scripts\deploy.py --admin-only # 只部署后台
 **第三十三轮：天气源系统**——wttr.in 国内不可达 → 天气源可配置（后台下拉 + Key）；默认高德（amap），wttr 海外备选，双源自动降级；fetch 加 AbortController 超时快速失败
 **第三十四轮：联网模式重构（去 RNDIS 推送）**——RNDIS=底层驱动、ICS=网络共享；`infoSource` 语义从"信息源"改为**联网方式**（wifi/usb），删除 externalClock/externalWeather/timeinfo 电脑推送代码；后台文案改"USB 共享网络（电脑 ICS）"
 **第三十五轮：天气自动定位**——新增 `/api/geoip` 后端代理（服务端请求 myip.ipip.net 解析省市，兼容 IPv6 出口）；城市留空自动定位实测"贵阳市 · 22°C · 晴"
+**第三十六轮：后台 UI 精修**——侧栏导航线性 SVG 图标（收起态不空）+ 收起态渐变粉胶囊底 + chevron 旋转过渡按钮；全局 :focus-visible 焦点光圈、开关/滑条/色块手感、dirty 柔和呼吸、tabular-nums、窄屏触达放大、prefers-reduced-motion；修 dev-addr 旧地址残留（30.1→137.2）
 
 ## 最终常用命令
 
