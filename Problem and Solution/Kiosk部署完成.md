@@ -344,6 +344,14 @@ python scripts\deploy.py --admin-only # 只部署后台
 **第三十六轮：后台 UI 精修**——侧栏导航线性 SVG 图标（收起态不空）+ 收起态渐变粉胶囊底 + chevron 旋转过渡按钮；全局 :focus-visible 焦点光圈、开关/滑条/色块手感、dirty 柔和呼吸、tabular-nums、窄屏触达放大、prefers-reduced-motion；修 dev-addr 旧地址残留（30.1→137.2）
 **第三十七轮：界面排版实时预览**——排版页嵌 iframe 屏幕预览（demo `?preview=1`，跳过 Live2D 防板子 OOM）；模块拖拽 + 右下角手柄缩放，postMessage 双向同步滑条（防循环）；模型占位框隐藏、模块框 fit-content 贴合内容、预览放大置顶、侧边栏 sticky 固定
 
+## 功能迭代记录（2026.9.4-9.5 连接状态模块与预览交互）
+
+> 每日摘要见 [[2026.9.4 Main]]、[[2026.9.5 Main]]；坑与根因见 [[Live2D Kiosk 排障记录]]。
+
+**第三十八轮：屏幕连接状态模块**——新增 WiFi / 蓝牙状态模块（自绘 SVG 图标 + 状态圆点，5s 轮询 `/api/net/status`、`/api/bt/status`）；后台全套配置：显示开关、字体风格、字体颜色、圆点颜色（dotColors）、布局滑条、预览拖拽；蓝牙后台轮询 15s→3s
+**第三十九轮：清屏与会话过滤修复**——清屏改 `clear_ts` 幂等版本号（kiosk/预览各自 poll 比对，修复竞争丢 clear）；壳会话过滤严格化（origin 空也过滤）
+**第四十轮：预览交互完善**——拖拽改四角判定（小模块可移动）；布局滑条数组补齐 wifi/bt；交互命中区改绑虚线框（所见即所得）；光标 move 只留虚线框；pin/flow-comp 两方案验证后回滚（教训见排障记录）
+
 ## 最终常用命令
 
 ```powershell

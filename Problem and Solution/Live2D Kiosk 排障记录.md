@@ -195,6 +195,28 @@ EOF
 systemctl enable cpufreq-performance.service
 ```
 
+## 2026.9.4 排障（清屏/会话过滤/新模块交互）
+
+| 现象 | 根因 | 解决 |
+|---|---|---|
+| 点"清空屏幕消息"没反应 | `/api/poll` 拉取即清空，kiosk 与预览 iframe **两个消费者竞争** clear 广播——常被预览抢走 | `/api/clear` 改更新 `CLEAR_TS` 时间戳，poll 返回 `clear_ts`，两端各自比对执行清屏（幂等无竞争） |
+| 配置了"显示单一会话"却显示所有会话 | 壳过滤条件 `if target and origin and origin != target`——**origin 为空的消息不过滤**（LLM 自动回复等消息提取不到 origin 就为空） | 改 `if target and origin != target`：配置会话后非该会话消息一律过滤（含 origin 空） |
+| 手机断开蓝牙后后台仍显示已连接 | 状态轮询间隔 15s 太长，断开后要等最多 15s 才刷新 | 轮询 15s→3s + visibilitychange 切回页面立即刷新 |
+| 新 WiFi/蓝牙模块无法移动（拖拽变成缩放） | 判定"距任一边 ≤10px → 缩放"，新模块高仅 ~21px——按中间 dy 也 <10 命中缩放 | 改**四角判定**（dx 且 dy 都 ≤ EDGE 才缩放），小模块中心可移动、角上仍可缩放 |
+| WiFi/蓝牙布局滑条数值框为空 | admin.html 布局模块数组共 5 处，render() 与预览回传消息处理两处**漏加 wifi/bt** | 补齐数组（`['time','date','weather','bubble','model','wifi','bt']`），滑条显示原始坐标 230/-195/1.38 |
+
+## 2026.9.5 排障（预览交互与 pin/flow-comp 教训）
+
+| 现象 | 根因 | 解决 |
+|---|---|---|
+| 取消 wifi/bt 显示后气泡位置错位（预览里贴天气、屏幕间隔远） | 模块都在 side-panel flex 列，隐藏 wifi/bt 后流变短 + flex 居中 → 其他模块整体位移，transform 偏移不变 → 错位 | 尝试两方案后**均回滚**（见下两行）：最终干净版——用户布局本就在隐藏状态下保存，无需补偿 |
+| **pin 方案**（模块转绝对定位）导致预览全没、屏幕模块错位 | 把模块按"全部显示"流位置转 `position:absolute`——与用户当前隐藏 wifi/bt 的布局状态冲突 | **回滚**（git revert 1d7f718） |
+| **flow-comp 方案**（translateY 流补偿）导致 iframe 预览模块全被推出屏幕（只有背景+虚线框） | `measureFlow` 在 iframe 环境时序下量到错误流位置，算出天量补偿（时间 transform 从 -140 被加成 -341px，top -161 全在可视区外）——直连/headless 时序碰巧正常，iframe 内必现 | **回滚两个 flow-comp commit**（git revert 5e1555f 7ba5b4a），回到干净版；iframe 内部实测模块位置恢复（时间 40/日期 146/天气 193/气泡 241） |
+| 预览里鼠标在虚线框外（文字右侧空白）也能拖到模块 | 时间/日期/天气是块级被 flex 拉伸到整行宽（630px），虚线框只贴文字（205px）；事件绑在**元素**上 | 交互改绑**虚线框**（pv-box，pointer-events: auto）——所见即所得，只有框内可操作 |
+| 预览里鼠标移到虚线框外显示"移动标识" | CSS `#side-panel > * { cursor: move }` 给元素设了 move——块级拉伸区全显示 move | 元素上移除 `cursor: move`（保留 touch-action/user-select），move 只留虚线框——框内 move / 框外默认（板端实测） |
+| 预览 iframe 一直加载旧版页面（修复后仍异常） | demo 静态服务（python http.server）**无 Cache-Control 头**，浏览器缓存旧 index.html/JS | 自定义 http.server 加 `Cache-Control: no-cache, no-store` + Pragma/Expires（systemd 换 ExecStart） |
+| 同步 index.html 后预览全没 | 误把**开发版 index.html**（引用 `/src/main.js`，板子无 src）当成部署文件 | 正确同步 **dist/index.html**（引用构建产物 index-*.js）；以后部署统一走 `scripts/deploy.py` |
+
 ## 相关
 
 - [[开发板和电脑端通过RNDIS通信]]
