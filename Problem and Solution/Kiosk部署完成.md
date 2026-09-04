@@ -342,6 +342,7 @@ python scripts\deploy.py --admin-only # 只部署后台
 **第三十四轮：联网模式重构（去 RNDIS 推送）**——RNDIS=底层驱动、ICS=网络共享；`infoSource` 语义从"信息源"改为**联网方式**（wifi/usb），删除 externalClock/externalWeather/timeinfo 电脑推送代码；后台文案改"USB 共享网络（电脑 ICS）"
 **第三十五轮：天气自动定位**——新增 `/api/geoip` 后端代理（服务端请求 myip.ipip.net 解析省市，兼容 IPv6 出口）；城市留空自动定位实测"贵阳市 · 22°C · 晴"
 **第三十六轮：后台 UI 精修**——侧栏导航线性 SVG 图标（收起态不空）+ 收起态渐变粉胶囊底 + chevron 旋转过渡按钮；全局 :focus-visible 焦点光圈、开关/滑条/色块手感、dirty 柔和呼吸、tabular-nums、窄屏触达放大、prefers-reduced-motion；修 dev-addr 旧地址残留（30.1→137.2）
+**第三十七轮：界面排版实时预览**——排版页嵌 iframe 屏幕预览（demo `?preview=1`，跳过 Live2D 防板子 OOM）；模块拖拽 + 右下角手柄缩放，postMessage 双向同步滑条（防循环）；模型占位框隐藏、模块框 fit-content 贴合内容、预览放大置顶、侧边栏 sticky 固定
 
 ## 最终常用命令
 
